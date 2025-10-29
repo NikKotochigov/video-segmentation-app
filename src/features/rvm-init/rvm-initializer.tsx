@@ -7,9 +7,9 @@ interface Props {
   autoInit?: boolean
 }
 
-export const RvmInitializer = ({ modelUrl, autoInit = true }: Props) => {
-  // Корректный вызов хука на верхнем уровне компонента
-  useRvmInit({ modelUrl, enabled: autoInit })
+export const RvmInitializer = ({ modelUrl }: Props) => {
+
+  useRvmInit({ modelUrl })
 
   const { isLoading, error, model } = useRvmStore()
 
