@@ -1,6 +1,6 @@
 import { Alert, LinearProgress, Stack, Typography } from '@mui/material'
 import { useRvmStore } from '../../stores/rvm/rvm.store'
-import { useEffect } from 'react'
+import { useRvmInit } from './use-rvm-init'
 
 interface Props {
   modelUrl: string
@@ -8,15 +8,10 @@ interface Props {
 }
 
 export const RvmInitializer = ({ modelUrl, autoInit = true }: Props) => {
-  const { isLoading, error, model } = useRvmStore()
+  // Корректный вызов хука на верхнем уровне компонента
+  useRvmInit({ modelUrl, enabled: autoInit })
 
-  // Ленивая инициализация через динамический импорт хука
-  useEffect(() => {
-    if (!autoInit) return
-    import('../rvm-init/use-rvm-init').then(({ useRvmInit }) => {
-      useRvmInit({ modelUrl })
-    })
-  }, [autoInit, modelUrl])
+  const { isLoading, error, model } = useRvmStore()
 
   if (isLoading) {
     return (
@@ -28,9 +23,7 @@ export const RvmInitializer = ({ modelUrl, autoInit = true }: Props) => {
   }
 
   if (error) {
-    return (
-      <Alert severity="error">Ошибка загрузки модели: {error}</Alert>
-    )
+    return <Alert severity="error">Ошибка загрузки модели: {error}</Alert>
   }
 
   if (model) {
