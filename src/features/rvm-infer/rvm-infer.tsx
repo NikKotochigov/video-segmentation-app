@@ -1,5 +1,5 @@
 import * as tf from '@tensorflow/tfjs'
-import { useEffect, useRef } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { useRvmStore } from '../../stores/rvm/rvm.store'
 import { useVideoStreamStore } from '../../stores/video-stream/video-stream.store'
 import { createRvmRunner } from '../../shared/lib/ml/rvm/infer-rvm'
@@ -11,8 +11,9 @@ export const RvmInfer = () => {
   const { originalStream } = useVideoStreamStore()
   const videoRef = useRef<HTMLVideoElement | null>(null)
   const canvasRef = useRef<HTMLCanvasElement | null>(null)
+  const [videoReady, setVideoReady] = useState(0)
 
-  // Привязываем источник к скрытому видео, чтобы читать кадры
+  // Привязываем источник к скрытому видео и ждём loadedmetadata
   useEffect(() => {
     if (!originalStream) return
     const v = document.createElement('video')
@@ -20,25 +21,33 @@ export const RvmInfer = () => {
     v.muted = true
     v.playsInline = true
     v.srcObject = originalStream
-    videoRef.current = v
+    const onLoaded = () => {
+      v.play().catch(console.warn)
+      videoRef.current = v
+      setVideoReady((x) => x + 1)
+    }
+    v.addEventListener('loadedmetadata', onLoaded)
     return () => {
+      v.removeEventListener('loadedmetadata', onLoaded)
       v.srcObject = null
       videoRef.current = null
     }
   }, [originalStream])
 
+  // Цикл инференса стартует, когда готовы и модель, и видео
   useEffect(() => {
-    if (!model || !videoRef.current || !canvasRef.current) return
+    const video = videoRef.current
+    const canvas = canvasRef.current
+    if (!model || !video || !canvas) return
+
     let running = true
     let raf = 0
     const runner = createRvmRunner(model, 0.25)
-    const canvas = canvasRef.current
     const ctx = canvas.getContext('2d')!
 
     const loop = () => {
       if (!running) return
-      const video = videoRef.current!
-      if (video.readyState >= 2) {
+      if (video.readyState >= HTMLMediaElement.HAVE_CURRENT_DATA) {
         tf.engine().startScope()
         try {
           const { pha } = runner.runOnce(video)
@@ -67,7 +76,7 @@ export const RvmInfer = () => {
 
     raf = requestAnimationFrame(loop)
     return () => { running = false; cancelAnimationFrame(raf); runner.dispose() }
-  }, [model])
+  }, [model, videoReady])
 
   return (
     <CanvasSurface
