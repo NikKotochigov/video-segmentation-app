@@ -1,11 +1,18 @@
+import { CssBaseline, ThemeProvider, createTheme } from '@mui/material'
 import { VideoSegmentationPage } from './pages/video-segmentation/video-segmentation.page'
-import './App.css'
+
+const theme = createTheme({
+  palette: {
+    mode: 'light',
+  },
+})
 
 function App() {
   return (
-    <div className="app">
+    <ThemeProvider theme={theme}>
+      <CssBaseline />
       <VideoSegmentationPage />
-    </div>
+    </ThemeProvider>
   )
 }
 

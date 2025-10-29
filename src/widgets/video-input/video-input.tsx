@@ -1,43 +1,31 @@
+import { Box, Button, Alert, Stack, Typography } from '@mui/material'
 import { useVideoStreamStore } from '../../stores/video-stream/video-stream.store'
 import { useCameraCapture } from '../../shared/lib/hooks/use-camera-capture'
-import { VideoPlayer } from '../../shared/ui/video-player/video-player'
-import './video-input.css'
+import { VideoSurface } from '../../shared/ui/video-surface/video-surface'
 
 export const VideoInput = () => {
   const { originalStream, isCapturing, error } = useVideoStreamStore()
   const { startCapture, stopCapture } = useCameraCapture()
 
   return (
-    <div className="video-input">
-      <div className="video-input__controls">
-        {!isCapturing ? (
-          <button 
-            onClick={startCapture}
-            className="video-input__button video-input__button--start"
-          >
-            Включить камеру
-          </button>
-        ) : (
-          <button 
-            onClick={stopCapture}
-            className="video-input__button video-input__button--stop"
-          >
-            Остановить
-          </button>
-        )}
-        
-        {error && (
-          <div className="video-input__error">
-            Ошибка: {error}
-          </div>
-        )}
-      </div>
-
-      <VideoPlayer 
-        stream={originalStream}
-        title="Исходное видео"
-        className="video-input__player"
-      />
-    </div>
+    <Stack sx={{ height: '100%' }}>
+      <Box sx={{ p: 2, borderBottom: 1, borderColor: 'divider' }}>
+        <Stack direction="row" spacing={1} alignItems="center">
+          {!isCapturing ? (
+            <Button variant="contained" color="success" onClick={startCapture}>
+              Включить камеру
+            </Button>
+          ) : (
+            <Button variant="contained" color="error" onClick={stopCapture}>
+              Остановить
+            </Button>
+          )}
+          {error && <Alert severity="error">Ошибка: {error}</Alert>}
+        </Stack>
+      </Box>
+      <Box sx={{ flex: 1, minHeight: 240 }}>
+        <VideoSurface stream={originalStream} title={<Typography variant="subtitle2">Исходное видео</Typography>} />
+      </Box>
+    </Stack>
   )
 }
