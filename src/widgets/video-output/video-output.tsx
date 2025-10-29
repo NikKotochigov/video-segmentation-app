@@ -1,6 +1,6 @@
 import { Box, Stack, Typography, Chip } from '@mui/material'
 import { useVideoStreamStore } from '../../stores/video-stream/video-stream.store'
-import { VideoSurface } from '../../shared/ui/video-surface/video-surface'
+import { RvmInfer } from '../../features/rvm-infer/rvm-infer'
 
 export const VideoOutput = () => {
   const { segmentedStream } = useVideoStreamStore()
@@ -11,7 +11,7 @@ export const VideoOutput = () => {
         <Chip label={segmentedStream ? 'Обработка активна' : 'Ожидание обработки'} color={segmentedStream ? 'success' : 'default'} />
       </Box>
       <Box sx={{ flex: 1, minHeight: 240 }}>
-        <VideoSurface stream={segmentedStream} title={<Typography variant="subtitle2">Результат сегментации</Typography>} />
+        <RvmInfer />
       </Box>
     </Stack>
   )
