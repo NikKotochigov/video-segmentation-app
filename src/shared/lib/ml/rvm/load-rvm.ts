@@ -12,17 +12,30 @@ export async function loadRvmModel(modelUrl: string): Promise<tf.GraphModel> {
     candidates.shift() // убрать 'webgpu'
   }
 
+  console.info('[RVM] Backends candidates:', candidates)
+
   for (const backend of candidates) {
+    const t0 = performance.now()
     try {
       await tf.setBackend(backend)
       await tf.ready()
+      const dt = (performance.now() - t0).toFixed(1)
+      console.info(`[RVM] Backend selected: ${backend} (ready in ${dt}ms)`) 
       break
-    } catch {
-      // пробуем следующий бэкенд
+    } catch (e) {
+      const dt = (performance.now() - t0).toFixed(1)
+      console.warn(`[RVM] Backend failed: ${backend} (after ${dt}ms)`, e)
       continue
     }
   }
 
+  console.info('[RVM] Loading model from:', modelUrl)
+  const t1 = performance.now()
   const model = await tf.loadGraphModel(modelUrl)
+  const tLoad = (performance.now() - t1).toFixed(1)
+  console.info('[RVM] Model loaded in', tLoad, 'ms')
+  console.info('[RVM] Model inputs:', model.inputs.map(i => i.name))
+  console.info('[RVM] Model outputs:', model.outputs.map(o => o.name))
+
   return model
 }
