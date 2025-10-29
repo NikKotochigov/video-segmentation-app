@@ -1,0 +1,12 @@
+node_modules
+/dist
+/build
+/.husky
+.env
+.env.*
+coverage
+*.log
+*.lock
+public/**/*.svg
+public/**/*.png
+public/**/*.jpg
