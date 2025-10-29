@@ -48,18 +48,14 @@ export const RvmInfer = () => {
     const loop = async () => {
       if (!running) return
       if (video.readyState >= HTMLMediaElement.HAVE_CURRENT_DATA) {
-        tf.engine().startScope()
         try {
-          const { pha } = await runner.runOnce(video) // await async
+          const { pha } = await runner.runOnce(video)
           const h = pha.shape[1], w = pha.shape[2]
-          const gray = tf.squeeze(tf.mul(pha, 255)).cast('int32') // HxW
-          const rgb = tf.stack([gray, gray, gray], -1).cast('int32') // HxWx3
+          const gray = tf.squeeze(tf.mul(pha, 255)).cast('int32')
+          const rgb = tf.stack([gray, gray, gray], -1).cast('int32')
           const a = tf.fill([h, w, 1], 255, 'int32')
           const rgba = tf.concat([rgb, a], -1)
-          const data = new ImageData(
-            Uint8ClampedArray.from(rgba.dataSync() as any),
-            w, h
-          )
+          const data = new ImageData(Uint8ClampedArray.from(rgba.dataSync() as any), w, h)
           if (canvas.width !== w || canvas.height !== h) {
             canvas.width = w
             canvas.height = h
@@ -69,7 +65,6 @@ export const RvmInfer = () => {
         } catch (e) {
           console.warn('[RVM] infer error', e)
         }
-        tf.engine().endScope()
       }
       raf = requestAnimationFrame(loop)
     }
