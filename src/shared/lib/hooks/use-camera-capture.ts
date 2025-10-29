@@ -1,5 +1,5 @@
 import { useEffect, useRef } from 'react'
-import { useVideoStreamStore } from '../../stores/video-stream/video-stream.store'
+import {useVideoStreamStore} from "../../../stores/video-stream/video-stream.store.ts";
 
 const CAMERA_CONSTRAINTS = {
   video: {
