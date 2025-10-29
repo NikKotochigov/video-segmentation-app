@@ -1,20 +1,21 @@
 import { create } from 'zustand'
 import type { RvmGraphModel } from '../../shared/lib/ml/rvm/load-rvm'
 
-interface RvmStoreState {
-  model: RvmGraphModel
-  isLoading: boolean
-  error: string | null
+const DEFAULT_STATE = {
+  model: null as RvmGraphModel,
+  isLoading: false,
+  error: null as string | null,
+}
+
+interface RvmStoreState extends typeof DEFAULT_STATE {
   setModel: (m: RvmGraphModel) => void
   setIsLoading: (v: boolean) => void
   setError: (e: string | null) => void
 }
 
 export const useRvmStore = create<RvmStoreState>((set) => ({
-  model: null,
-  isLoading: false,
-  error: null,
+  ...DEFAULT_STATE,
   setModel: (m) => set({ model: m }),
   setIsLoading: (v) => set({ isLoading: v }),
-  setError: (e) => set({ error: e })
+  setError: (e) => set({ error: e }),
 }))
