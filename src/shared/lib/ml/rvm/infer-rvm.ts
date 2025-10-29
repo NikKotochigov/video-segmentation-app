@@ -14,7 +14,10 @@ export function createRvmRunner(model: tf.GraphModel, downsample = 0.25) {
   const ds = tf.scalar(downsample)
 
   const runOnce = (video: HTMLVideoElement): RvmOutputs => tf.tidy(() => {
-    const src = tf.expandDims(tf.browser.fromPixels(video)) // [1,H,W,3]
+    // Модель ожидает float32 в диапазоне [0,1]
+    const src = tf.tidy(() =>
+      tf.expandDims(tf.browser.fromPixels(video).toFloat().div(255))
+    ) // [1,H,W,3] float32
 
     const inputs: Record<string, tf.Tensor> = {
       src,
