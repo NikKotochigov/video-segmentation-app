@@ -45,12 +45,12 @@ export const RvmInfer = () => {
     const runner = createRvmRunner(model, 0.25)
     const ctx = canvas.getContext('2d')!
 
-    const loop = () => {
+    const loop = async () => {
       if (!running) return
       if (video.readyState >= HTMLMediaElement.HAVE_CURRENT_DATA) {
         tf.engine().startScope()
         try {
-          const { pha } = runner.runOnce(video)
+          const { pha } = await runner.runOnce(video) // await async
           const h = pha.shape[1], w = pha.shape[2]
           const gray = tf.squeeze(tf.mul(pha, 255)).cast('int32') // HxW
           const rgb = tf.stack([gray, gray, gray], -1).cast('int32') // HxWx3
