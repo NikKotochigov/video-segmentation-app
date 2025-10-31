@@ -1,13 +1,13 @@
-import { useEffect } from 'react';
-import { useRvmStore } from '../../stores/rvm/rvm.store';
-import { VideoSegment } from '../../shared/lib/ml/video-segmenter/segmentation.ts';
+import { useEffect, useState } from 'react';
+import { VideoSegment } from '../../shared/lib/ml/video-segment';
 
 interface UseRvmInitOptions {
   modelUrl: string;
 }
 
 export const useRvmInit = ({ modelUrl }: UseRvmInitOptions) => {
-  const { setModel, setIsLoading, setError } = useRvmStore();
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState('');
 
   useEffect(() => {
     let mounted = true;
@@ -29,5 +29,7 @@ export const useRvmInit = ({ modelUrl }: UseRvmInitOptions) => {
     return () => {
       mounted = false;
     };
-  }, [modelUrl, setModel, setIsLoading, setError]);
+  }, [modelUrl]);
+
+  return { isLoading, error };
 };

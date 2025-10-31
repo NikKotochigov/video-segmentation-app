@@ -1,17 +1,13 @@
-import { Alert, LinearProgress, Stack, Typography } from '@mui/material'
-import { useRvmStore } from '../../stores/rvm/rvm.store'
-import { useRvmInit } from './use-rvm-init'
+import { Alert, LinearProgress, Stack, Typography } from '@mui/material';
+import { useRvmInit } from './use-rvm-init';
 
 interface Props {
-  modelUrl: string
-  autoInit?: boolean
+  modelUrl: string;
+  autoInit?: boolean;
 }
 
 export const RvmInitializer = ({ modelUrl }: Props) => {
-
-  useRvmInit({ modelUrl })
-
-  const { isLoading, error, model } = useRvmStore()
+  const { isLoading, error } = useRvmInit({ modelUrl });
 
   if (isLoading) {
     return (
@@ -19,20 +15,16 @@ export const RvmInitializer = ({ modelUrl }: Props) => {
         <Typography variant="body2">Загрузка модели RVM…</Typography>
         <LinearProgress />
       </Stack>
-    )
+    );
   }
 
   if (error) {
-    return <Alert severity="error">Ошибка загрузки модели: {error}</Alert>
+    return <Alert severity="error">Ошибка загрузки модели: {error}</Alert>;
   }
 
-  if (model) {
-    return (
-      <Typography variant="body2" sx={{ p: 2 }}>
-        Модель RVM загружена
-      </Typography>
-    )
-  }
-
-  return null
-}
+  return (
+    <Typography variant="body2" sx={{ p: 2 }}>
+      Модель RVM загружена
+    </Typography>
+  );
+};
