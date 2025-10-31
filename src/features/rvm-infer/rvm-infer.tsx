@@ -51,27 +51,42 @@ export const RvmInfer = () => {
     const runner = createRvmRunner(model, 0.25)
     const ctx = canvas.getContext('2d')!
 
+    // Переиспользуемый буфер ImageData и throttling FPS
+    let imageData: ImageData | null = null
+    let lastFrame = 0
+    const FPS_LIMIT = 30
+
     const loop = async () => {
       if (!running) return
+      const now = performance.now()
+      if (now - lastFrame < 1000 / FPS_LIMIT) {
+        raf = requestAnimationFrame(loop)
+        return
+      }
+      lastFrame = now
+
       if (video.readyState >= HTMLMediaElement.HAVE_CURRENT_DATA) {
         try {
           const { fgr, pha } = await runner.runOnce(video)
           const h = pha.shape[1], w = pha.shape[2]
 
-          let outRGB: tf.Tensor
+          if (!imageData || imageData.width !== w || imageData.height !== h) {
+            imageData = new ImageData(w, h)
+            if (canvas.width !== w || canvas.height !== h) { canvas.width = w; canvas.height = h }
+          }
+
           if (mode === 'alpha') {
             const gray = tf.squeeze(tf.mul(pha, 255)).cast('int32')
             const rgb = tf.stack([gray, gray, gray], -1).cast('int32')
             const a = tf.fill([h, w, 1], 255, 'int32')
             const rgba = tf.concat([rgb, a], -1)
-            const data = new ImageData(Uint8ClampedArray.from(rgba.dataSync() as any), w, h)
-            if (canvas.width !== w || canvas.height !== h) { canvas.width = w; canvas.height = h }
-            ctx.putImageData(data, 0, 0)
-            tf.dispose([gray, rgb, a, rgba])
-            tf.dispose([fgr, pha])
+            const arr = await rgba.data() // async вместо dataSync
+            imageData.data.set(arr as unknown as Uint8ClampedArray)
+            ctx.putImageData(imageData, 0, 0)
+            tf.dispose([gray, rgb, a, rgba, fgr, pha])
           } else {
-            // Приводим fgr к [1,H,W,3]
             const fgr3 = fgr
+            let outRGB: tf.Tensor
             if (mode === 'foreground') {
               outRGB = fgr3
             } else {
@@ -83,9 +98,9 @@ export const RvmInfer = () => {
             const u8s = tf.squeeze(u8, [0]) // [H,W,3]
             const a = tf.fill([h, w, 1], 255, 'int32')
             const rgba = tf.concat([u8s, a], -1)
-            const data = new ImageData(Uint8ClampedArray.from(rgba.dataSync() as any), w, h)
-            if (canvas.width !== w || canvas.height !== h) { canvas.width = w; canvas.height = h }
-            ctx.putImageData(data, 0, 0)
+            const arr = await rgba.data() // async
+            imageData.data.set(arr as unknown as Uint8ClampedArray)
+            ctx.putImageData(imageData, 0, 0)
             tf.dispose([u8, u8s, a, rgba, outRGB, fgr, pha])
           }
         } catch (e) {
@@ -96,7 +111,7 @@ export const RvmInfer = () => {
     }
 
     raf = requestAnimationFrame(loop)
-    return () => { running = false; cancelAnimationFrame(raf); runner.dispose() }
+    return () => { running = false; cancelAnimationFrame(raf); runner.dispose(); imageData = null }
   }, [model, videoReady, mode])
 
   return (
