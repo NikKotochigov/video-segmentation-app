@@ -18,7 +18,7 @@ export function createRvmRunner(model: tf.GraphModel, downsample = 0.25) {
     await tf.ready()
 
     // tidy только вокруг синхронных промежуточных операций
-    const src = tf.tidy(() => tf.expandDims(tf.browser.fromPixels(video).toFloat().div(255)))
+    const src = tf.tidy(() => tf.expandDims(tf.browser.fromPixels(video).toFloat().div(255).expandDims(0)))
 
     // inputs не оборачиваем в tidy — они нужны до конца executeAsync
     const inputs: Record<string, tf.Tensor> = {

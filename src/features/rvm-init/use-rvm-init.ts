@@ -1,33 +1,33 @@
-import { useEffect } from 'react'
-import { loadRvmModel } from '../../shared/lib/ml/rvm/load-rvm'
-import { useRvmStore } from '../../stores/rvm/rvm.store'
+import { useEffect } from 'react';
+import { useRvmStore } from '../../stores/rvm/rvm.store';
+import { VideoSegment } from '../../shared/lib/ml/video-segmenter/segmentation.ts';
 
 interface UseRvmInitOptions {
-  modelUrl: string
+  modelUrl: string;
 }
 
 export const useRvmInit = ({ modelUrl }: UseRvmInitOptions) => {
-  const { setModel, setIsLoading, setError } = useRvmStore()
+  const { setModel, setIsLoading, setError } = useRvmStore();
 
   useEffect(() => {
-    let mounted = true
+    let mounted = true;
     const run = async () => {
       try {
-        setIsLoading(true)
-        const model = await loadRvmModel(modelUrl)
-        if (!mounted) return
-        setModel(model)
+        setIsLoading(true);
+        const videoSegmenter = VideoSegment.getInstance();
+        await videoSegmenter.loadModel(modelUrl);
+        if (!mounted) return;
       } catch (e) {
-        const msg = e instanceof Error ? e.message : 'Failed to load RVM model'
-        setError(msg)
-        console.error('RVM load error', e)
+        const msg = e instanceof Error ? e.message : 'Failed to load RVM model';
+        setError(msg);
+        console.error('RVM load error', e);
       } finally {
-        setIsLoading(false)
+        setIsLoading(false);
       }
-    }
-    run()
+    };
+    run();
     return () => {
-      mounted = false
-    }
-  }, [modelUrl, setModel, setIsLoading, setError])
-}
+      mounted = false;
+    };
+  }, [modelUrl, setModel, setIsLoading, setError]);
+};
