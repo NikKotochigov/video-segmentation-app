@@ -33,9 +33,9 @@ export class VideoSegment {
     this.lastBgReload = 0; // время последней перезагрузки фона
   }
 
-  static getInstance(options: IVideoSegmentOptions): VideoSegment {
+  static getInstance(): VideoSegment {
     if (!VideoSegment.instance) {
-      VideoSegment.instance = new VideoSegment(options);
+      VideoSegment.instance = new VideoSegment({ downsample: 0.4, frameSkip: 1 });
     }
     return VideoSegment.instance;
   }
@@ -105,7 +105,7 @@ export class VideoSegment {
     await this.setBackground(pngUrl);
   }
 
-  async predict(frameLike: VideoFrame) {
+  async predict(frameLike: VideoFrame | HTMLVideoElement) {
     if (!this.model) throw new Error('Model not loaded');
     if (!this.bgBitmap) {
       // Если фон не установлен, пытаемся загрузить дефолтный
@@ -130,7 +130,9 @@ export class VideoSegment {
     else bitmap = frameLike;
 
     const src = tf.tidy(() => tf.browser.fromPixels(bitmap).toFloat().div(255).expandDims(0));
-    if (frameLike instanceof VideoFrame) bitmap.close();
+    if (frameLike instanceof VideoFrame) { // @ts-ignore
+      bitmap.close();
+    }
 
     // Проверка размера state и входных данных
     // В RVM часто возникает ошибка, если state имеет неправильный размер (например, [1,1,1,1] после инициализации)
