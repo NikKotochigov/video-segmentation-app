@@ -1,7 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
 import { useVideoStreamStore } from '../../stores/video-stream/video-stream.store';
 import { CanvasSurface } from '../../shared/ui/canvas-surface/canvas-surface';
-import { Typography, Stack } from '@mui/material';
 import { VideoSegment } from '../../shared/lib/ml/video-segment';
 
 export const RvmInfer = () => {
@@ -35,6 +34,7 @@ export const RvmInfer = () => {
   useEffect(() => {
     const video = videoRef.current;
     const canvas = canvasRef.current;
+
     if (!video || !canvas) return;
 
     let running = true;
@@ -56,9 +56,9 @@ export const RvmInfer = () => {
       if (video.readyState >= HTMLMediaElement.HAVE_CURRENT_DATA) {
         try {
           const bmp = await VideoSegment.getInstance().predict(video);
-          if (ctx && canvasRef?.current) {
-            ctx.clearRect(0, 0, canvasRef.current.width, canvasRef.current.height);
-            ctx.drawImage(bmp, 0, 0, canvasRef.current.width, canvasRef.current.height);
+          if (ctx && canvasRef.current) {
+            ctx.clearRect(0, 0, canvasRef.current?.width, canvasRef.current?.height);
+            ctx.drawImage(bmp, 0, 0, canvasRef.current?.width, canvasRef.current?.height);
           }
         } catch (e) {
           console.warn('[RVM] infer error', e);
@@ -74,12 +74,5 @@ export const RvmInfer = () => {
     };
   }, [videoReady]);
 
-  return (
-    <Stack sx={{ height: '100%' }}>
-      <CanvasSurface
-        ref={canvasRef}
-        title={<Typography variant="subtitle2">Результат сегментации</Typography>}
-      />
-    </Stack>
-  );
+  return <CanvasSurface ref={canvasRef} />;
 };

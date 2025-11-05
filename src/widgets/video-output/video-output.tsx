@@ -6,16 +6,14 @@ export const VideoOutput = () => {
   const { segmentedStream } = useVideoStreamStore();
 
   return (
-    <Stack sx={{ height: '100%' }}>
+    <Stack>
       <Box sx={{ p: 2, borderBottom: 1, borderColor: 'divider' }}>
         <Chip
           label={segmentedStream ? 'Обработка активна' : 'Ожидание обработки'}
           color={segmentedStream ? 'success' : 'default'}
         />
       </Box>
-      <Box sx={{ flex: 1, minHeight: 240 }}>
-        <RvmInfer />
-      </Box>
+      <RvmInfer />
     </Stack>
   );
 };

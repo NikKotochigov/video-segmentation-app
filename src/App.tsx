@@ -1,11 +1,12 @@
-import { CssBaseline, ThemeProvider, createTheme } from '@mui/material'
-import { VideoSegmentationPage } from './pages/video-segmentation/video-segmentation.page'
+import { CssBaseline, ThemeProvider, createTheme } from '@mui/material';
+import { VideoSegmentationPage } from './pages/video-segmentation/video-segmentation.page';
+import './App.css';
 
 const theme = createTheme({
   palette: {
     mode: 'light',
   },
-})
+});
 
 function App() {
   return (
@@ -13,7 +14,7 @@ function App() {
       <CssBaseline />
       <VideoSegmentationPage />
     </ThemeProvider>
-  )
+  );
 }
 
-export default App
+export default App;
