@@ -1,6 +1,6 @@
 import * as tf from '@tensorflow/tfjs';
 import { GraphModel, Scalar } from '@tensorflow/tfjs';
-import { RecurrentState } from './types.ts';
+import { IVideoSegmentOptions, RecurrentState } from './types.ts';
 
 export class VideoSegment {
   private static instance: VideoSegment | null = null;
@@ -8,8 +8,15 @@ export class VideoSegment {
   private model: GraphModel | null;
   private readonly downsampleRatio: Scalar;
   private recurrentState: RecurrentState;
+  private bgBitmap: ImageBitmap | null;
+  private frameCount: number = 0;
+  private frameSkip: number;
+  private lastBgReload: number;
+  private lastBitmap: ImageBitmap | null;
+  private canvas: OffscreenCanvas | HTMLCanvasElement | null;
+  private ctx: OffscreenCanvasRenderingContext2D | CanvasRenderingContext2D | null;
 
-  private constructor(options = {}) {
+  private constructor(options: IVideoSegmentOptions) {
     this.model = null;
     this.downsampleRatio = tf.scalar(options.downsample ?? 0.4, 'float32');
     this.recurrentState = {
@@ -19,16 +26,14 @@ export class VideoSegment {
       r4i: tf.zeros([1, 1, 1, 1], 'float32'),
     };
     this.bgBitmap = null;
-    this._canvas = null;
-    this._ctx = null;
+    this.canvas = null;
+    this.ctx = null;
     this.frameSkip = options.frameSkip ?? 0;
-    this._frameCount = 0;
-    this._lastBitmap = null;
-    this._lastFrame = null;
-    this._lastBgReload = 0; // время последней перезагрузки фона
+    this.lastBitmap = null;
+    this.lastBgReload = 0; // время последней перезагрузки фона
   }
 
-  static getInstance(options = {}): VideoSegment {
+  static getInstance(options: IVideoSegmentOptions): VideoSegment {
     if (!VideoSegment.instance) {
       VideoSegment.instance = new VideoSegment(options);
     }
@@ -81,7 +86,7 @@ export class VideoSegment {
     );
   }
 
-  async setBackground(pngUrl) {
+  async setBackground(pngUrl: string) {
     // cache-buster - добавил проверку наличия '?'
     const url = pngUrl.includes('?') ? pngUrl : `${pngUrl}?t=${Date.now()}`;
     const img = new Image();
@@ -95,12 +100,12 @@ export class VideoSegment {
   async reloadBackground(pngUrl = 'wallpaper.png') {
     // чтобы не перезагружать слишком часто
     const now = Date.now();
-    if (now - this._lastBgReload < 1500) return;
-    this._lastBgReload = now;
+    if (now - this.lastBgReload < 1500) return;
+    this.lastBgReload = now;
     await this.setBackground(pngUrl);
   }
 
-  async predict(frameLike) {
+  async predict(frameLike: VideoFrame) {
     if (!this.model) throw new Error('Model not loaded');
     if (!this.bgBitmap) {
       // Если фон не установлен, пытаемся загрузить дефолтный
@@ -113,9 +118,9 @@ export class VideoSegment {
       }
     }
 
-    this._frameCount++;
-    if (this.frameSkip > 0 && this._frameCount % this.frameSkip !== 0 && this._lastBitmap)
-      return this._lastBitmap;
+    this.frameCount++;
+    if (this.frameSkip > 0 && this.frameCount % this.frameSkip !== 0 && this.lastBitmap)
+      return this.lastBitmap;
 
     // 🔁 автообновление фона (если файл поменялся)
     await this.reloadBackground('wallpaper.png');
@@ -132,6 +137,7 @@ export class VideoSegment {
     // Но при первом запуске модель должна сама определить размер.
     // Здесь оставляем оригинальную логику, предполагая, что tf.zeros корректно обрабатывается при первом вызове.
 
+    // @ts-ignore
     const [fgr, pha, r1o, r2o, r3o, r4o] = await this.model.executeAsync(
       { src, ...this.recurrentState, downsample_ratio: this.downsampleRatio },
       ['fgr', 'pha', 'r1o', 'r2o', 'r3o', 'r4o']
@@ -152,26 +158,27 @@ export class VideoSegment {
     const fgBitmap = await createImageBitmap(fgImageData);
     tf.dispose([src, fgr, pha, rgba]);
 
-    if (!this._canvas) {
-      this._canvas =
+    if (!this.canvas) {
+      this.canvas =
         typeof OffscreenCanvas !== 'undefined'
           ? new OffscreenCanvas(w, h)
           : Object.assign(document.createElement('canvas'), { width: w, height: h });
-      this._ctx = this._canvas.getContext('2d', { willReadFrequently: true });
+      // @ts-ignore
+      this.ctx = this.canvas.getContext('2d', { willReadFrequently: true });
     }
 
-    this._ctx.clearRect(0, 0, w, h);
-    this._ctx.drawImage(this.bgBitmap, 0, 0, w, h);
-    this._ctx.drawImage(fgBitmap, 0, 0, w, h);
+    this.ctx?.clearRect(0, 0, w, h);
+    this.ctx?.drawImage(this.bgBitmap, 0, 0, w, h);
+    this.ctx?.drawImage(fgBitmap, 0, 0, w, h);
     fgBitmap.close();
 
     const outBitmap =
-      this._canvas instanceof OffscreenCanvas
-        ? this._canvas.transferToImageBitmap()
-        : await createImageBitmap(this._canvas);
+      this.canvas instanceof OffscreenCanvas
+        ? this.canvas.transferToImageBitmap()
+        : await createImageBitmap(this.canvas);
 
-    if (this._lastBitmap) this._lastBitmap.close?.();
-    this._lastBitmap = outBitmap;
+    if (this.lastBitmap) this.lastBitmap.close?.();
+    this.lastBitmap = outBitmap;
     return outBitmap;
   }
 
@@ -186,11 +193,11 @@ export class VideoSegment {
       this.bgBitmap.close();
       this.bgBitmap = null;
     }
-    if (this._lastBitmap) {
-      this._lastBitmap.close();
-      this._lastBitmap = null;
+    if (this.lastBitmap) {
+      this.lastBitmap.close();
+      this.lastBitmap = null;
     }
-    this._canvas = null;
-    this._ctx = null;
+    this.canvas = null;
+    this.ctx = null;
   }
 }
