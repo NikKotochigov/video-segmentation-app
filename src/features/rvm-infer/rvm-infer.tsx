@@ -37,6 +37,9 @@ export const RvmInfer = () => {
 
     if (!video || !canvas) return;
 
+    canvas.width = video.videoWidth;
+    canvas.height = video.videoHeight;
+
     let running = true;
     let raf = 0;
     const ctx = canvas.getContext('2d')!;
@@ -74,5 +77,11 @@ export const RvmInfer = () => {
     };
   }, [videoReady]);
 
-  return <CanvasSurface ref={canvasRef} />;
+  return (
+    <CanvasSurface
+      ref={canvasRef}
+      width={videoRef?.current?.videoWidth as number}
+      height={videoRef?.current?.videoHeight as number}
+    />
+  );
 };

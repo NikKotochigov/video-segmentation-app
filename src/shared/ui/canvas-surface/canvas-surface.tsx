@@ -1,8 +1,15 @@
 import { Box } from '@mui/material';
 import { forwardRef } from 'react';
 
-export const CanvasSurface = forwardRef<HTMLCanvasElement>(({}, ref) => {
-  return <Box component="canvas" ref={ref} width={640} height={360} />;
-});
+interface ICanvasSurfaceProps {
+  width?: number;
+  height?: number;
+}
+
+export const CanvasSurface = forwardRef<ICanvasSurfaceProps, HTMLCanvasElement>(
+  ({ width, height }, ref) => {
+    return <Box component="canvas" ref={ref} width={width} height={height} />;
+  }
+);
 
 CanvasSurface.displayName = 'CanvasSurface';
