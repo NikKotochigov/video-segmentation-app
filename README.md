@@ -1,32 +1,28 @@
-# [translate:Video Segmentation App]
+# Video Segmentation App
 
-[translate:Реальное время маттинг и замена фона в видео прямо в браузере на TensorFlow.js и Robust Video Matting (RVM).
+Real-time video matting and background replacement directly in the browser using TensorFlow.js and Robust Video Matting (RVM).
 
-Сделано на React, TypeScript и архитектуре Feature-Sliced Design (FSD).]
+Built with React, TypeScript, and Feature-Sliced Design (FSD) architecture.
 
----
+## 🚀 Features
 
-## [translate:🚀 Возможности]
+- Online background removal and replacement for video and streams (camera or files)
+- Runs entirely on the client (no server), automatic WebGPU/WebGL/WASM/CPU backend selection via TensorFlow.js
+- RVM — robust neural network with temporal state support for smooth segmentation
+- Works with photos, video files, and webcam
+- Flexible FSD structure
+- Background options: solid color, image, or original background blur
+- Speed and memory optimizations: asynchronous rendering, automatic backend, safe memory management
 
-- [translate:Удаление и замена фона онлайн для видео и потоков (камера или файлы)]
-- [translate:Работает полностью на клиенте (без сервера), автовыбор WebGPU/WebGL/wasm/CPU через TensorFlow.js]
-- [translate:RVM — устойчивая нейросеть с поддержкой временного состояния для плавной сегментации]
-- [translate:Работает с фото, видеофайлами и веб-камерой]
-- [translate:Гибкая структура FSD]
-- [translate:Выбор фона: однотонный, изображение или размытие исходного]
-- [translate:Оптимизации по скорости и памяти: асинхронный рендер, автоматический бэкенд, безопасная работа с памятью]
-
----
-
-## [translate:🗂 Структура проекта (FSD)]
+## 🗂 Project Structure (FSD)
 
 ```
 src/
-  features/             # [translate:Фичи, бизнес-логика]
-  entities/             # [translate:Сущности (если потребуется)]
+  features/             # Features, business logic
+  entities/             # Entities (if needed)
   shared/
     lib/
-      ml/               # [translate:Модельные алгоритмы, обработчики]
+      ml/               # Model algorithms, processors
         video-segmenter/
           video-segmenter.ts
           types.ts
@@ -34,86 +30,92 @@ src/
           infer-rvm.ts
           compose.ts
           load-rvm.ts
-    ui/                 # [translate:Чистые UI-компоненты]
-  widgets/              # [translate:Крупные UI-сборки (правое окно и так далее)]
-  pages/                # [translate:Роутовые страницы]
-  app/                  # [translate:Входная точка, роутинг]
-  process/              # [translate:Инициализация, конфиг, рантайм]
+    ui/                 # Pure UI components
+  widgets/              # Large UI assemblies (right panel, etc.)
+  pages/                # Route pages
+  app/                  # Entry point, routing
+  process/              # Initialization, config, runtime
 ```
 
----
+## 🛠️ Getting Started
 
-## [translate:🛠️ Как запустить]
+### 1. Install Dependencies
 
-### [translate:1. Установите зависимости]
-
-```
+```bash
 npm install
-# или
-yarn
+# or
+yarn install
 ```
 
-### [translate:2. Скачайте модель RVM]
+### 2. Download RVM Model
 
-- [translate:Возьмите TFJS-экспорт модели RVM (например, rvm_mobilenetv3_tfjs_int8.zip).]
-- [translate:Распакуйте в public/models/rvm_mobilenetv3_tfjs_int8/ так, чтобы были:]
-  - public/models/rvm_mobilenetv3_tfjs_int8/model.json
-  - public/models/rvm_mobilenetv3_tfjs_int8/group1-shard*.bin
+- Get the TFJS export of the RVM model (e.g., `rvm_mobilenetv3_tfjs_int8.zip`)
+- Extract to `public/models/rvm_mobilenetv3_tfjs_int8/` so you have:
+  - `public/models/rvm_mobilenetv3_tfjs_int8/model.json`
+  - `public/models/rvm_mobilenetv3_tfjs_int8/group1-shard*.bin`
 
-### [translate:3. Запустите dev-сервер]
+### 3. Start Development Server
 
-```
+```bash
 npm run dev
 ```
-[translate:Откройте http://localhost:5173]
 
----
+Open http://localhost:5173
 
-## [translate:🤖 ML pipeline]
+## 🤖 ML Pipeline
 
-- [translate:Каждый кадр видео нормализуется и подается в RVM TFJS-модель с временным состоянием.]
-- [translate:Выходы объединяются как RGBA и композируются с выбранным фоном.]
-- [translate:Итог отрисовывается в canvas или как ImageBitmap для дальнейшей обработки.]
-- [translate:Все тензоры и ресурсы явно освобождаются для избежания утечек.]
+- Each video frame is normalized and fed to the RVM TFJS model with temporal state
+- Outputs are combined as RGBA and composited with the selected background
+- Result is rendered to canvas or as ImageBitmap for further processing
+- All tensors and resources are explicitly freed to avoid memory leaks
 
----
+## ⚡ Tech Stack
 
-## [translate:⚡ Стэк технологий]
+- **Frontend**: React + TypeScript
+- **ML**: TensorFlow.js (WebGPU/WebGL/WASM/CPU)
+- **Model**: Robust Video Matting (RVM)
+- **Architecture**: Feature-Sliced Design (FSD)
+- **State Management**: Zustand
+- **Build Tools**: Vite, ESLint, Prettier
 
-- React + TypeScript
-- TensorFlow.js (WebGPU/WebGL/WASM/CPU)
-- Robust Video Matting (RVM)
-- Feature-Sliced Design (FSD)
-- Zustand
-- Vite, ESLint, Prettier
+## 📦 Key Files
 
----
+- `src/shared/lib/ml/video-segmenter/video-segmenter.ts`: Main segmentation pipeline
+- `src/shared/lib/ml/rvm/`: Model loading, inference, and composition utilities
+- `src/features/rvm-infer/rvm-infer.tsx`: Main inference loop and React integration
+- `src/widgets/video-output/video-output.tsx`: Right panel, UI composition
 
-## [translate:📦 Ключевые файлы]
+## 🧹 Memory and Performance
 
-- src/shared/lib/ml/video-segmenter/video-segmenter.ts: [translate:Основной pipeline для сегментации]
-- src/shared/lib/ml/rvm/: [translate:Утилиты загрузки модели, инференса и композиции]
-- src/features/rvm-infer/rvm-infer.tsx: [translate:Основной цикл инференса и React-интеграция]
-- src/widgets/video-output/video-output.tsx: [translate:Правое окно, UI-композиция]
+- **Memory leak prevention**: All objects, tensors, and bitmaps are cleaned up as early as possible (see code comments)
+- **OffscreenCanvas**: Used when available for better performance
+- **Automatic backend selection**: Chooses the fastest available backend (WebGPU > WebGL > WASM > CPU)
+- **Optimized rendering**: Up to 30 FPS, asynchronous to avoid browser and GPU overload
 
----
+## 🚀 Deployment
 
-## [translate:🧹 Память и производительность]
+The app can be deployed to any static hosting service since it runs entirely in the browser:
 
-- [translate:Без утечек: все объекты, тензоры и bitmap очищаются максимально рано (см. комментарии в коде).]
-- [translate:Используется OffscreenCanvas при доступности.]
-- [translate:Автоматически выбирается самый быстрый backend (WebGPU > WebGL > WASM > CPU).]
-- [translate:Рендер до 30 FPS, асинхронно, чтобы избежать нагрузки на браузер и GPU.]
+```bash
+npm run build
+```
 
----
+Deploy the `dist` folder to your preferred hosting platform.
 
-## [translate:📝 Лицензия]
+## 🔧 Configuration
+
+The app automatically detects the best TensorFlow.js backend, but you can configure:
+
+- Model path in the configuration files
+- Performance settings (FPS, resolution)
+- Background options
+
+## 📝 License
+
 MIT
 
----
-
-## [translate:🙏 Благодарности]
+## 🙏 Acknowledgments
 
 - [Robust Video Matting (RVM)](https://github.com/PeterL1n/RobustVideoMatting)
 - [TensorFlow.js](https://www.tensorflow.org/js)
-- [FSD Community](https://feature-sliced.design/)
+- [Feature-Sliced Design Community](https://feature-sliced.design/)
